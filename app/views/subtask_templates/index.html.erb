@@ -1,0 +1,40 @@
+<h2>サブタスクテンプレート</h2>
+
+<div class="contextual">
+  <%= link_to '新規テンプレート', new_subtask_template_path, class: 'icon icon-add' %>
+</div>
+
+<% if @templates.any? %>
+  <div class="autoscroll">
+    <table class="list">
+      <thead>
+        <tr>
+          <th>名前</th>
+          <th>説明</th>
+          <th>プロジェクト</th>
+          <th>サブタスク数</th>
+          <th>作成日</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @templates.each do |template| %>
+          <tr class="<%= cycle('odd', 'even') %>">
+            <td><%= link_to template.name, subtask_template_path(template) %></td>
+            <td><%= truncate(template.description, length: 100) %></td>
+            <td><%= template.project ? template.project.name : 'グローバル' %></td>
+            <td><%= template.subtask_template_items.count %></td>
+            <td><%= format_date(template.created_on) %></td>
+            <td class="buttons">
+              <%= link_to '編集', edit_subtask_template_path(template), class: 'icon icon-edit' %>
+              <%= link_to '削除', subtask_template_path(template), method: :delete, 
+                          confirm: '本当に削除しますか？', class: 'icon icon-del' %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="nodata">テンプレートがありません。</p>
+<% end %>
