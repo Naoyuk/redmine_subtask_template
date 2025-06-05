@@ -1,0 +1,58 @@
+/* サブタスクテンプレート用スタイル */
+
+.subtask-item {
+  border: 1px solid #d7d7d7;
+  margin: 15px 0;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 4px;
+  position: relative;
+}
+
+.subtask-item h4 {
+  margin-top: 0;
+  color: #333;
+}
+
+.subtask-item .remove-link {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.subtask-item-controls {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.subtask-item-controls > div {
+  flex: 1;
+}
+
+.subtask-item-controls label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.subtask-item-controls select {
+  width: 100%;
+  max-width: 200px;
+}
+
+.clear-both {
+  clear: both;
+}
+
+.add-subtask-button {
+  margin: 15px 0;
+  padding: 8px 16px;
+  background: #759FCF;
+  color: white;
+  text-decoration: none;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.add-subtask-button:hover

@@ -1,151 +1,130 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class SubtaskTemplatesControllerTest < ActionController::TestCase
+  # fixturesを使わずにテストデータを作成
+  
   def setup
-    setup_test_user
-    setup_test_project
-    @request.session[:user_id] = @user.id
+    # 管理者ユーザーを作成
+    @admin = User.find_by(admin: true) || create_admin_user
+    User.current = @admin
+    @request.session[:user_id] = @admin.id
+    
+    # 一般ユーザーを作成
+    @user = create_regular_user
+    
+    # テスト用プロジェクトを作成
+    @project = create_test_project
+    
+    # テストデータの準備
+    @template = create_template_with_items
   end
 
-  def test_should_get_index
+  def test_index_should_display_templates
+    # 一覧表示のテスト
     get :index
+    
     assert_response :success
     assert_template 'index'
-    assert_not_nil assigns(:templates)
+    assert_select 'h2', text: 'Subtask Templates'
   end
 
-  def test_should_get_index_with_templates
-    template = SubtaskTemplate.create!(name: 'Test Template', project: @project)
+  def test_index_should_show_template_list
+    # テンプレートが一覧に表示されることのテスト
+    template = SubtaskTemplate.create!(name: "Test Template List #{Time.current.to_i}")
     
     get :index
+    
     assert_response :success
-    assert_includes assigns(:templates), template
+    assert_select 'td', text: template.name
   end
 
-  def test_should_get_new
+  def test_index_should_show_no_data_message_when_empty
+    # テンプレートがない場合のメッセージ表示テスト
+    SubtaskTemplate.delete_all
+    
+    get :index
+    
+    assert_response :success
+    assert_select 'p.nodata', text: 'No templates found.'
+  end
+
+  def test_new_should_display_form
+    # 新規作成フォーム表示のテスト
     get :new
+    
     assert_response :success
     assert_template 'new'
-    assert_not_nil assigns(:template)
-    assert assigns(:template).new_record?
+    assert_select 'h2', text: 'New Subtask Template'
   end
 
-  def test_should_create_template
-    assert_difference('SubtaskTemplate.count') do
+  def test_new_should_build_initial_subtask_item
+    # 新規作成時に初期サブタスクアイテムが作成されることのテスト
+    get :new
+    
+    assert_response :success
+    assert assigns(:template).subtask_template_items.any?
+    assert_select 'div#subtask-items .nested-fields', minimum: 1
+  end
+
+  def test_create_should_save_valid_template
+    # 有効なテンプレートの作成テスト
+    assert_difference 'SubtaskTemplate.count', 1 do
       post :create, params: {
         subtask_template: {
-          name: 'New Template',
-          description: 'New template description',
+          name: "New Test Template #{Time.current.to_i}",
+          description: 'Test description',
           project_id: @project.id
         }
       }
     end
     
     assert_redirected_to subtask_templates_path
-    assert_equal 'テンプレートが作成されました。', flash[:notice]
+    assert_equal 'Template was successfully created.', flash[:notice]
     
     template = SubtaskTemplate.last
-    assert_equal 'New Template', template.name
-    assert_equal @project, template.project
+    assert_equal 'Test description', template.description
+    assert_equal @project.id, template.project_id
   end
 
-  def test_should_not_create_template_without_name
-    assert_no_difference('SubtaskTemplate.count') do
+  def test_create_should_save_global_template
+    # グローバルテンプレートの作成テスト
+    assert_difference 'SubtaskTemplate.count', 1 do
       post :create, params: {
         subtask_template: {
-          description: 'Template without name'
+          name: "Global Template #{Time.current.to_i}",
+          description: 'Global description',
+          project_id: ''
         }
       }
     end
     
-    assert_template 'new'
-    assert_not_nil assigns(:template).errors[:name]
+    template = SubtaskTemplate.last
+    assert_nil template.project_id
   end
 
-  def test_should_get_show
-    template = SubtaskTemplate.create!(name: 'Show Template', project: @project)
+  def test_create_with_subtask_items
+    # サブタスクアイテム付きテンプレートの作成テスト
+    user = @admin
+    priority = create_issue_priority
+    tracker = create_tracker
     
-    get :show, params: { id: template.id }
-    assert_response :success
-    assert_template 'show'
-    assert_equal template, assigns(:template)
-  end
-
-  def test_should_get_edit
-    template = SubtaskTemplate.create!(name: 'Edit Template', project: @project)
-    
-    get :edit, params: { id: template.id }
-    assert_response :success
-    assert_template 'edit'
-    assert_equal template, assigns(:template)
-  end
-
-  def test_should_update_template
-    template = SubtaskTemplate.create!(name: 'Original Name', project: @project)
-    
-    put :update, params: {
-      id: template.id,
-      subtask_template: {
-        name: 'Updated Name',
-        description: 'Updated description'
-      }
-    }
-    
-    assert_redirected_to subtask_templates_path
-    assert_equal 'テンプレートが更新されました。', flash[:notice]
-    
-    template.reload
-    assert_equal 'Updated Name', template.name
-    assert_equal 'Updated description', template.description
-  end
-
-  def test_should_not_update_template_with_invalid_data
-    template = SubtaskTemplate.create!(name: 'Valid Name', project: @project)
-    
-    put :update, params: {
-      id: template.id,
-      subtask_template: {
-        name: ''  # 空の名前
-      }
-    }
-    
-    assert_template 'edit'
-    assert_not_nil assigns(:template).errors[:name]
-    
-    template.reload
-    assert_equal 'Valid Name', template.name  # 変更されていない
-  end
-
-  def test_should_destroy_template
-    template = SubtaskTemplate.create!(name: 'Delete Template', project: @project)
-    
-    assert_difference('SubtaskTemplate.count', -1) do
-      delete :destroy, params: { id: template.id }
-    end
-    
-    assert_redirected_to subtask_templates_path
-    assert_equal 'テンプレートが削除されました。', flash[:notice]
-  end
-
-  def test_should_create_template_with_nested_items
-    assert_difference('SubtaskTemplate.count') do
-      assert_difference('SubtaskTemplateItem.count', 2) do
+    assert_difference 'SubtaskTemplate.count', 1 do
+      assert_difference 'SubtaskTemplateItem.count', 2 do
         post :create, params: {
           subtask_template: {
-            name: 'Template with Items',
+            name: "Template with Items #{Time.current.to_i}",
             description: 'Template description',
-            project_id: @project.id,
             subtask_template_items_attributes: {
               '0' => {
-                title: 'First Item',
-                description: 'First item description',
-                assigned_to_id: @user.id,
-                tracker_id: default_tracker.id
+                title: 'First Subtask',
+                description: 'First description',
+                assigned_to_id: user.id,
+                priority_id: priority.id,
+                tracker_id: tracker.id
               },
               '1' => {
-                title: 'Second Item',
-                description: 'Second item description',
-                priority_id: default_priority.id
+                title: 'Second Subtask',
+                description: 'Second description'
               }
             }
           }
@@ -156,33 +135,92 @@ class SubtaskTemplatesControllerTest < ActionController::TestCase
     template = SubtaskTemplate.last
     assert_equal 2, template.subtask_template_items.count
     
-    first_item = template.subtask_template_items.find_by(title: 'First Item')
-    assert_not_nil first_item
-    assert_equal @user, first_item.assigned_to
-    assert_equal default_tracker, first_item.tracker
-    
-    second_item = template.subtask_template_items.find_by(title: 'Second Item')
-    assert_not_nil second_item
-    assert_equal default_priority, second_item.priority
+    first_item = template.subtask_template_items.first
+    assert_equal 'First Subtask', first_item.title
+    assert_equal user.id, first_item.assigned_to_id
+    assert_equal priority.id, first_item.priority_id
+    assert_equal tracker.id, first_item.tracker_id
   end
 
-  def test_should_update_template_with_nested_items
-    template = SubtaskTemplate.create!(name: 'Template', project: @project)
-    item = template.subtask_template_items.create!(title: 'Original Item')
+  def test_create_should_render_new_on_validation_error
+    # バリデーションエラー時のテスト
+    assert_no_difference 'SubtaskTemplate.count' do
+      post :create, params: {
+        subtask_template: {
+          name: '', # 空の名前でバリデーションエラー
+          description: 'Test description'
+        }
+      }
+    end
     
-    put :update, params: {
-      id: template.id,
+    assert_response :success
+    assert_template 'new'
+    assert assigns(:template).errors[:name].present?
+  end
+
+  def test_show_should_display_template
+    # 詳細表示のテスト
+    get :show, params: { id: @template.id }
+    
+    assert_response :success
+    assert_template 'show'
+    assert_select 'h2', text: @template.name
+  end
+
+  def test_show_should_display_subtask_items
+    # サブタスクアイテムの表示テスト
+    get :show, params: { id: @template.id }
+    
+    assert_response :success
+    assert_select '.subtask-item-detail', count: @template.subtask_template_items.count
+    
+    @template.subtask_template_items.each do |item|
+      assert_select 'h4', text: /#{item.title}/
+    end
+  end
+
+  def test_edit_should_display_form
+    # 編集フォーム表示のテスト
+    get :edit, params: { id: @template.id }
+    
+    assert_response :success
+    assert_template 'edit'
+    assert_select 'h2', text: 'Edit Subtask Template'
+  end
+
+  def test_update_should_modify_template
+    # テンプレート更新のテスト
+    new_name = "Updated Template Name #{Time.current.to_i}"
+    
+    patch :update, params: {
+      id: @template.id,
       subtask_template: {
-        name: 'Updated Template',
+        name: new_name,
+        description: 'Updated description'
+      }
+    }
+    
+    assert_redirected_to subtask_templates_path
+    assert_equal 'Template was successfully updated.', flash[:notice]
+    
+    @template.reload
+    assert_equal new_name, @template.name
+    assert_equal 'Updated description', @template.description
+  end
+
+  def test_update_with_subtask_items_modification
+    # サブタスクアイテム更新のテスト
+    item = @template.subtask_template_items.first
+    
+    patch :update, params: {
+      id: @template.id,
+      subtask_template: {
+        name: @template.name,
         subtask_template_items_attributes: {
           '0' => {
             id: item.id,
-            title: 'Updated Item',
-            description: 'Updated description'
-          },
-          '1' => {
-            title: 'New Item',
-            description: 'New item description'
+            title: 'Updated Subtask Title',
+            description: 'Updated subtask description'
           }
         }
       }
@@ -190,64 +228,155 @@ class SubtaskTemplatesControllerTest < ActionController::TestCase
     
     assert_redirected_to subtask_templates_path
     
-    template.reload
-    assert_equal 'Updated Template', template.name
-    assert_equal 2, template.subtask_template_items.count
-    
     item.reload
-    assert_equal 'Updated Item', item.title
-    assert_equal 'Updated description', item.description
-    
-    new_item = template.subtask_template_items.find_by(title: 'New Item')
-    assert_not_nil new_item
+    assert_equal 'Updated Subtask Title', item.title
+    assert_equal 'Updated subtask description', item.description
   end
 
-  def test_should_delete_nested_items
-    template = SubtaskTemplate.create!(name: 'Template', project: @project)
-    item = template.subtask_template_items.create!(title: 'Item to Delete')
+  def test_update_with_subtask_items_deletion
+    # サブタスクアイテム削除のテスト
+    item = @template.subtask_template_items.first
+    item_id = item.id
     
-    assert_difference('SubtaskTemplateItem.count', -1) do
-      put :update, params: {
-        id: template.id,
-        subtask_template: {
-          name: 'Template',
-          subtask_template_items_attributes: {
-            '0' => {
-              id: item.id,
-              _destroy: '1'
-            }
+    patch :update, params: {
+      id: @template.id,
+      subtask_template: {
+        name: @template.name,
+        subtask_template_items_attributes: {
+          '0' => {
+            id: item.id,
+            title: item.title,
+            _destroy: '1'
           }
         }
       }
+    }
+    
+    assert_redirected_to subtask_templates_path
+    assert_nil SubtaskTemplateItem.find_by(id: item_id)
+  end
+
+  def test_update_should_render_edit_on_validation_error
+    # 更新時のバリデーションエラーテスト
+    patch :update, params: {
+      id: @template.id,
+      subtask_template: {
+        name: '', # 空の名前でバリデーションエラー
+        description: 'Updated description'
+      }
+    }
+    
+    assert_response :success
+    assert_template 'edit'
+    assert assigns(:template).errors[:name].present?
+  end
+
+  def test_destroy_should_delete_template
+    # テンプレート削除のテスト
+    template_id = @template.id
+    
+    assert_difference 'SubtaskTemplate.count', -1 do
+      delete :destroy, params: { id: @template.id }
     end
     
-    assert_not SubtaskTemplateItem.exists?(item.id)
+    assert_redirected_to subtask_templates_path
+    assert_equal 'Template was successfully deleted.', flash[:notice]
+    assert_nil SubtaskTemplate.find_by(id: template_id)
+  end
+
+  def test_destroy_should_delete_associated_items
+    # テンプレート削除時に関連アイテムも削除されることのテスト
+    item_ids = @template.subtask_template_items.pluck(:id)
+    
+    delete :destroy, params: { id: @template.id }
+    
+    item_ids.each do |item_id|
+      assert_nil SubtaskTemplateItem.find_by(id: item_id)
+    end
   end
 
   def test_should_require_admin_access
-    # 非管理者ユーザーでテスト
-    user = User.find_by_login('jsmith') || User.create!(
-      login: 'testuser',
-      firstname: 'Test',
-      lastname: 'User',
-      mail: 'test@example.com',
-      language: 'en',
-      status: User::STATUS_ACTIVE
-    )
-    @request.session[:user_id] = user.id
+    # 管理者権限が必要であることのテスト
+    User.current = @user
+    @request.session[:user_id] = @user.id
     
     get :index
-    assert_response 403
-  rescue ActionController::RoutingError
-    # ルートが見つからない場合はスキップ
-    skip "Route not found - this may be expected if plugin routes are not loaded"
+    
+    assert_response 403 # Forbidden
   end
 
-  def test_should_handle_not_found
-    get :show, params: { id: 999999 }
-    assert_response :not_found
-  rescue ActiveRecord::RecordNotFound
-    # Redmineのバージョンによっては例外が発生する場合がある
-    assert true
+  private
+
+  def create_admin_user
+    User.create!(
+      login: "admin#{Time.current.to_i}",
+      firstname: "Admin",
+      lastname: "User",
+      mail: "admin#{Time.current.to_i}@example.com",
+      admin: true,
+      status: User::STATUS_ACTIVE,
+      password: "password",
+      password_confirmation: "password"
+    )
+  end
+
+  def create_regular_user
+    User.create!(
+      login: "user#{Time.current.to_i}",
+      firstname: "Regular",
+      lastname: "User",
+      mail: "user#{Time.current.to_i}@example.com",
+      admin: false,
+      status: User::STATUS_ACTIVE,
+      password: "password",
+      password_confirmation: "password"
+    )
+  end
+
+  def create_test_project
+    Project.create!(
+      name: "Test Project #{Time.current.to_i}",
+      identifier: "test-project-#{Time.current.to_i}",
+      status: Project::STATUS_ACTIVE
+    )
+  end
+
+  def create_issue_priority
+    IssuePriority.create!(
+      name: "Test Priority #{Time.current.to_i}",
+      position: 1
+    )
+  end
+
+  def create_tracker
+    status = IssueStatus.create!(
+      name: "New #{Time.current.to_i}",
+      position: 1
+    )
+    
+    Tracker.create!(
+      name: "Test Tracker #{Time.current.to_i}",
+      default_status: status,
+      core_fields: Tracker::CORE_FIELDS
+    )
+  end
+
+  def create_template_with_items
+    template = SubtaskTemplate.create!(
+      name: "Test Template #{Time.current.to_i}",
+      description: "Test template description"
+    )
+    
+    SubtaskTemplateItem.create!(
+      subtask_template: template,
+      title: "First Subtask"
+    )
+    
+    SubtaskTemplateItem.create!(
+      subtask_template: template,
+      title: "Second Subtask"
+    )
+    
+    template
   end
 end

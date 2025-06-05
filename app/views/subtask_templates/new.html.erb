@@ -1,0 +1,7 @@
+<h2>New Subtask Template</h2>
+
+<%= form_with model: @template, local: true do |f| %>
+  <%= render 'form', template: @template, form: f %>
+<% end %>
+
+<%= link_to 'Back', subtask_templates_path %>

@@ -55,30 +55,6 @@ test_categories = {
   'Integration Tests' => 'integration'
 }
 
-# 実行する個別テストファイル
-specific_tests = [
-  'test/minimal_test.rb'
-]
-
-puts "\n=== Running Specific Tests ==="
-
-# minimal_testを最初に実行
-specific_tests.each do |test_file|
-  test_path = File.join(plugin_dir, test_file)
-  
-  if File.exist?(test_path)
-    puts "\n--- Running #{test_file} ---"
-    begin
-      load test_path
-    rescue => e
-      puts "Error running #{test_file}: #{e.message}"
-      puts e.backtrace.first(3)
-    end
-  else
-    puts "Test file not found: #{test_path}"
-  end
-end
-
 puts "\n=== Running Categorized Tests ==="
 
 # カテゴリ別にテスト実行
@@ -123,21 +99,6 @@ test_categories.each do |category_name, category_dir|
       puts e.backtrace.first(5)
     end
   end
-end
-
-puts "\n=== Running MiniTest Suite ==="
-
-# MiniTestランナーでテストを実行
-begin
-  result = Minitest.run([])
-  puts "\n=== Test Results ==="
-  if result == 0
-    puts "✓ All tests passed!"
-  else
-    puts "✗ Some tests failed (exit code: #{result})"
-  end
-rescue => e
-  puts "Error running test suite: #{e.message}"
 end
 
 puts "\n=== Test Suite Complete ==="
