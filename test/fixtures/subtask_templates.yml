@@ -1,0 +1,33 @@
+# テスト用のSubtaskTemplateフィクスチャ
+
+global_template:
+  id: 1
+  name: "Global Development Template"
+  description: "Standard development workflow template"
+  project_id: null
+  created_on: <%= 2.weeks.ago.to_s(:db) %>
+  updated_on: <%= 1.week.ago.to_s(:db) %>
+
+project_template:
+  id: 2
+  name: "Project Specific Template"
+  description: "Template for specific project needs"
+  project_id: 1
+  created_on: <%= 1.week.ago.to_s(:db) %>
+  updated_on: <%= 3.days.ago.to_s(:db) %>
+
+bug_fix_template:
+  id: 3
+  name: "Bug Fix Template"
+  description: "Standard bug fixing workflow"
+  project_id: null
+  created_on: <%= 3.days.ago.to_s(:db) %>
+  updated_on: <%= 1.day.ago.to_s(:db) %>
+
+feature_template:
+  id: 4
+  name: "Feature Development"
+  description: "New feature development template"
+  project_id: 1
+  created_on: <%= 2.days.ago.to_s(:db) %>
+  updated_on: <%= 1.day.ago.to_s(:db) %>
