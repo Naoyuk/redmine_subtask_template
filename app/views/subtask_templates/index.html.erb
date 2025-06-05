@@ -1,7 +1,7 @@
-<h2>サブタスクテンプレート</h2>
+<h2>Subtask Templates</h2>
 
 <div class="contextual">
-  <%= link_to '新規テンプレート', new_subtask_template_path, class: 'icon icon-add' %>
+  <%= link_to 'New Template', new_subtask_template_path, class: 'icon icon-add' %>
 </div>
 
 <% if @templates.any? %>
@@ -9,11 +9,11 @@
     <table class="list">
       <thead>
         <tr>
-          <th>名前</th>
-          <th>説明</th>
-          <th>プロジェクト</th>
-          <th>サブタスク数</th>
-          <th>作成日</th>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Project</th>
+          <th>Number of subtasks</th>
+          <th>Created at</th>
           <th></th>
         </tr>
       </thead>
@@ -22,13 +22,13 @@
           <tr class="<%= cycle('odd', 'even') %>">
             <td><%= link_to template.name, subtask_template_path(template) %></td>
             <td><%= truncate(template.description, length: 100) %></td>
-            <td><%= template.project ? template.project.name : 'グローバル' %></td>
+            <td><%= template.project ? template.project.name : 'Global' %></td>
             <td><%= template.subtask_template_items.count %></td>
-            <td><%= format_date(template.created_on) %></td>
+            <td><%= format_date(template.created_at) %></td>
             <td class="buttons">
-              <%= link_to '編集', edit_subtask_template_path(template), class: 'icon icon-edit' %>
-              <%= link_to '削除', subtask_template_path(template), method: :delete, 
-                          confirm: '本当に削除しますか？', class: 'icon icon-del' %>
+              <%= link_to 'Edit', edit_subtask_template_path(template), class: 'icon icon-edit' %>
+              <%= link_to 'Delete', subtask_template_path(template), method: :delete, 
+                          confirm: 'Are you sure?', class: 'icon icon-del' %>
             </td>
           </tr>
         <% end %>
@@ -36,5 +36,5 @@
     </table>
   </div>
 <% else %>
-  <p class="nodata">テンプレートがありません。</p>
+  <p class="nodata">No templates found.</p>
 <% end %>

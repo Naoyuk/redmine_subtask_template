@@ -7,7 +7,7 @@ Redmine::Plugin.register :subtask_template do
   author_url 'https://github.com/Naoyuk'
 
   # プラグインのメニューを管理者メニューに追加
-  menu :admin_menu, :subtask_templates, { :controller => 'subtask_templates', :action => 'index' }, :caption => 'Subtask Templates', :if => Proc.new { User.current.admin? }
+  menu :admin_menu, :subtask_templates, { :controller => 'subtask_templates', :action => 'index' }, :caption => '📋 Subtask Templates', :if => Proc.new { User.current.admin? }
 
   # 権限の定義
   project_module :subtask_template do

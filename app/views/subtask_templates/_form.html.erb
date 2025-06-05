@@ -1,0 +1,44 @@
+<%= error_messages_for template %>
+
+<div class="box tabular">
+  <p>
+    <%= form.label :name, 'Name' %><span class="required"> *</span>
+    <%= form.text_field :name, size: 60, required: true %>
+  </p>
+
+  <p>
+    <%= form.label :description, 'Description' %>
+    <%= form.text_area :description, rows: 5, cols: 60 %>
+  </p>
+
+  <p>
+    <%= form.label :project_id, 'Project' %>
+    <%= form.select :project_id, 
+          options_from_collection_for_select(Project.active.order(:name), :id, :name, template.project_id),
+          { include_blank: 'Global (All Projects)' } %>
+    <em class="info">Select a project to limit this template to a specific project</em>
+  </p>
+</div>
+
+<fieldset class="box">
+  <legend>Subtask Items</legend>
+  
+  <div id="subtask-items">
+    <%= form.fields_for :subtask_template_items do |item_form| %>
+      <%= render 'subtask_item_fields', form: item_form %>
+    <% end %>
+  </div>
+  
+  <p>
+    <a href="#" id="add-subtask-item" class="icon icon-add">Add Subtask</a>
+  </p>
+</fieldset>
+
+<p>
+  <%= form.submit class: 'button' %>
+  <%= link_to 'Cancel', subtask_templates_path, class: 'button' %>
+</p>
+
+<%= content_for :header_tags do %>
+  <%= javascript_include_tag 'subtask_template', plugin: 'subtask_template' %>
+<% end %>

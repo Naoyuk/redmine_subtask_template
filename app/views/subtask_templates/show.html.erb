@@ -1,0 +1,70 @@
+<h2><%= @template.name %></h2>
+
+<div class="contextual">
+  <%= link_to 'Edit', edit_subtask_template_path(@template), class: 'icon icon-edit' %>
+  <%= link_to 'Delete', subtask_template_path(@template), method: :delete, 
+              confirm: 'Are you sure?', class: 'icon icon-del' %>
+</div>
+
+<div class="box">
+  <h3>Template info</h3>
+  
+  <p>
+    <strong>Title:</strong> <%= @template.name %>
+  </p>
+  
+  <% if @template.description.present? %>
+    <p>
+      <strong>Description:</strong><br>
+      <%= simple_format(@template.description) %>
+    </p>
+  <% end %>
+  
+  <p>
+    <strong>Project:</strong> 
+    <%= @template.project ? @template.project.name : 'Global (for all projects)' %>
+  </p>
+  
+  <p>
+    <strong>Create at:</strong> <%= format_date(@template.created_at) %>
+  </p>
+  
+  <p>
+    <strong>Updated at:</strong> <%= format_date(@template.updated_at) %>
+  </p>
+</div>
+
+<div class="box">
+  <h3 class="subtask-items-title">Subtask items (<%= pluralize(@template.subtask_template_items.count, 'task') %>)</h3>
+  
+  <% if @template.subtask_template_items.any? %>
+    <% @template.subtask_template_items.ordered.each_with_index do |item, index| %>
+      <div class="subtask-item-detail" style="border: 1px solid #ddd; margin: 10px 0; padding: 15px; background: #f9f9f9;">
+        <h4><%= index + 1 %>. <%= item.title %></h4>
+        
+        <% if item.description.present? %>
+          <p><strong>Description:</strong> <%= simple_format(item.description) %></p>
+        <% end %>
+        
+        <table class="list">
+          <tr>
+            <th style="width: 100px;">Tracker:</th>
+            <td><%= item.tracker ? item.tracker.name : 'Default' %></td>
+          </tr>
+          <tr>
+            <th>Assignee:</th>
+            <td><%= item.assigned_to ? item.assigned_to.name : 'Not assigned' %></td>
+          </tr>
+          <tr>
+            <th>Priority:</th>
+            <td><%= item.priority ? item.priority.name : 'Default' %></td>
+          </tr>
+        </table>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="nodata">No subtask.</p>
+  <% end %>
+</div>
+
+<%= link_to 'Back', subtask_templates_path %>
