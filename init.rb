@@ -1,13 +1,13 @@
 Redmine::Plugin.register :subtask_template do
   name 'Subtask Template Plugin'
-  author 'Your Name'
-  description 'プラグインでIssueのテンプレートを管理し、サブタスクを自動的に作成できるプラグインです。'
+  author 'Naoyuki Ishida'
+  description 'This plugin allows you to manage issue templates and automatically create subtasks in Redmine.'
   version '0.0.1'
-  url 'https://github.com/yourusername/subtask_template'
-  author_url 'https://github.com/yourusername'
+  url 'https://github.com/Naoyuk/redmine_subtask_template'
+  author_url 'https://github.com/Naoyuk'
 
   # プラグインのメニューを管理者メニューに追加
-  menu :admin_menu, :subtask_templates, { :controller => 'subtask_templates', :action => 'index' }, :caption => 'サブタスクテンプレート'
+  menu :admin_menu, :subtask_templates, { :controller => 'subtask_templates', :action => 'index' }, :caption => 'Subtask Templates', :if => Proc.new { User.current.admin? }
 
   # 権限の定義
   project_module :subtask_template do
