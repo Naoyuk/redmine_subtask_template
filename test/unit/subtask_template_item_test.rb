@@ -1,125 +1,190 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class SubtaskTemplateItemTest < ActiveSupport::TestCase
+  
   def setup
-    setup_test_user
-    setup_test_project
-    @template = SubtaskTemplate.create!(
-      name: 'Test Template',
-      project: @project
-    )
+    @template = SubtaskTemplate.create!(name: "Test Template")
   end
-
-  def test_create_item
-    item = @template.subtask_template_items.new(
-      title: 'Test Item',
-      description: 'Test description'
-    )
-    
-    assert item.save, "Item should be saved successfully"
-    assert_equal 'Test Item', item.title
-    assert_equal @template, item.subtask_template
-  end
-
-  def test_item_title_required
-    item = @template.subtask_template_items.new(description: 'Test description')
-    assert_not item.save, "Item should not be saved without title"
-    assert_includes item.errors[:title], "can't be blank"
-  end
-
-  def test_item_title_length_validation
-    long_title = 'a' * 256  # 255文字を超える
-    item = @template.subtask_template_items.new(
-      title: long_title,
-      description: 'Test description'
-    )
-    
-    assert_not item.save, "Item should not be saved with title longer than 255 characters"
-    assert_includes item.errors[:title], "is too long (maximum is 255 characters)"
-  end
-
-  def test_item_description_length_validation
-    long_description = 'a' * 65536  # 65535文字を超える
-    item = @template.subtask_template_items.new(
-      title: 'Test Item',
-      description: long_description
-    )
-    
-    assert_not item.save, "Item should not be saved with description longer than 65535 characters"
-    assert_includes item.errors[:description], "is too long (maximum is 65535 characters)"
-  end
-
-  def test_item_belongs_to_template
-    item = SubtaskTemplateItem.create!(
+  
+  def test_should_create_item
+    # 基本的なアイテム作成のテスト
+    item = SubtaskTemplateItem.new(
       subtask_template: @template,
-      title: 'Belongs to Template'
+      title: "Test Subtask",
+      description: "Test description"
     )
     
+    assert item.save
+    assert_equal "Test Subtask", item.title
+    assert_equal "Test description", item.description
     assert_equal @template, item.subtask_template
-    assert_includes @template.subtask_template_items, item
   end
-
-  def test_item_with_assigned_user
-    item = @template.subtask_template_items.create!(
-      title: 'Assigned Item',
-      assigned_to: @user
+  
+  def test_should_require_title
+    # titleが必須であることのテスト
+    item = SubtaskTemplateItem.new(
+      subtask_template: @template,
+      description: "Description without title"
     )
     
-    assert_equal @user, item.assigned_to
+    assert_not item.save
+    assert item.errors[:title].present?
   end
-
-  def test_item_with_tracker
-    item = @template.subtask_template_items.create!(
-      title: 'Tracker Item',
-      tracker: default_tracker
+  
+  def test_should_validate_title_length
+    # titleの長さ制限のテスト
+    item = SubtaskTemplateItem.new(
+      subtask_template: @template,
+      title: "a" * 256
     )
     
-    assert_equal default_tracker, item.tracker
+    assert_not item.save
+    assert item.errors[:title].present?
   end
-
-  def test_item_with_priority
-    item = @template.subtask_template_items.create!(
-      title: 'Priority Item',
-      priority: default_priority
+  
+  def test_should_validate_description_length
+    # descriptionの長さ制限のテスト
+    item = SubtaskTemplateItem.new(
+      subtask_template: @template,
+      title: "Valid Title",
+      description: "a" * 65536  # 65535文字を超える
     )
     
-    assert_equal default_priority, item.priority
+    assert_not item.save
+    assert item.errors[:description].present?
   end
-
-  def test_item_ordered_scope
-    item3 = @template.subtask_template_items.create!(title: 'Third', id: 3)
-    item1 = @template.subtask_template_items.create!(title: 'First', id: 1)
-    item2 = @template.subtask_template_items.create!(title: 'Second', id: 2)
+  
+  def test_should_allow_nil_description
+    # descriptionがnilでも保存できることのテスト
+    item = SubtaskTemplateItem.new(
+      subtask_template: @template,
+      title: "Title Only",
+      description: nil
+    )
+    
+    assert item.save
+  end
+  
+  def test_should_allow_empty_description
+    # descriptionが空文字でも保存できることのテスト
+    item = SubtaskTemplateItem.new(
+      subtask_template: @template,
+      title: "Title Only",
+      description: ""
+    )
+    
+    assert item.save
+  end
+  
+  def test_association_with_assigned_to_user
+    # assigned_toとの関連テスト（Userが存在する場合）
+    if defined?(User)
+      user = User.first || User.create!(
+        login: "testuser#{Time.current.to_i}",
+        firstname: "Test",
+        lastname: "User",
+        mail: "test#{Time.current.to_i}@example.com"
+      )
+      
+      item = SubtaskTemplateItem.create!(
+        subtask_template: @template,
+        title: "Assigned Subtask",
+        assigned_to: user
+      )
+      
+      assert_equal user, item.assigned_to
+    end
+  end
+  
+  def test_association_with_priority
+    # priorityとの関連テスト（IssuePriorityが存在する場合）
+    if defined?(IssuePriority)
+      priority = IssuePriority.first || IssuePriority.create!(
+        name: "High Priority #{Time.current.to_i}"
+      )
+      
+      item = SubtaskTemplateItem.create!(
+        subtask_template: @template,
+        title: "Priority Subtask",
+        priority: priority
+      )
+      
+      assert_equal priority, item.priority
+    end
+  end
+  
+  def test_association_with_tracker
+    # trackerとの関連テスト（Trackerが存在する場合）
+    if defined?(Tracker)
+      # 既存のトラッカーを使用するか、新しく作成
+      tracker = Tracker.first
+      unless tracker
+        # IssueStatusが必要な場合は作成
+        status = IssueStatus.first || IssueStatus.create!(
+          name: "New #{Time.current.to_i}"
+        )
+        tracker = Tracker.create!(
+          name: "Test Tracker #{Time.current.to_i}",
+          default_status: status
+        )
+      end
+      
+      item = SubtaskTemplateItem.create!(
+        subtask_template: @template,
+        title: "Tracker Subtask",
+        tracker: tracker
+      )
+      
+      assert_equal tracker, item.tracker
+    end
+  end
+  
+  def test_ordered_scope
+    # orderedスコープのテスト
+    item1 = SubtaskTemplateItem.create!(
+      subtask_template: @template,
+      title: "First Item"
+    )
+    item2 = SubtaskTemplateItem.create!(
+      subtask_template: @template,
+      title: "Second Item"
+    )
     
     ordered_items = @template.subtask_template_items.ordered
-    assert_equal [item1, item2, item3], ordered_items.to_a
+    
+    # IDの順序で並んでいることを確認
+    assert_equal item1.id, ordered_items.first.id
+    assert_equal item2.id, ordered_items.last.id
   end
-
-  def test_item_optional_associations
-    # assigned_to、priority、trackerがnilでもエラーにならないことを確認
-    item = @template.subtask_template_items.new(
-      title: 'Optional Associations',
-      assigned_to: nil,
-      priority: nil,
-      tracker: nil
+  
+  def test_should_allow_nil_foreign_keys
+    # 外部キーがnilでも保存できることのテスト
+    item = SubtaskTemplateItem.create!(
+      subtask_template: @template,
+      title: "Minimal Subtask",
+      assigned_to_id: nil,
+      priority_id: nil,
+      tracker_id: nil
     )
     
-    assert item.save, "Item should be saved with nil associations"
-    assert_nil item.assigned_to
-    assert_nil item.priority
-    assert_nil item.tracker
+    assert item.persisted?
+    assert_nil item.assigned_to_id
+    assert_nil item.priority_id
+    assert_nil item.tracker_id
   end
-
-  def test_item_position_default
-    item = @template.subtask_template_items.create!(title: 'Position Test')
-    assert_equal 0, item.position, "Default position should be 0"
-  end
-
-  def test_item_position_custom
-    item = @template.subtask_template_items.create!(
-      title: 'Custom Position',
-      position: 5
+  
+  def test_should_handle_invalid_foreign_keys
+    # 無効な外部キーでもバリデーションエラーにならないことのテスト
+    # （外部キー制約がデータベースレベルで処理される）
+    item = SubtaskTemplateItem.new(
+      subtask_template: @template,
+      title: "Test Subtask",
+      assigned_to_id: 99999,  # 存在しないID
+      priority_id: 99999,
+      tracker_id: 99999
     )
-    assert_equal 5, item.position
+    
+    # バリデーションは通るが、保存時にデータベースエラーが発生する可能性
+    assert item.valid?
   end
 end

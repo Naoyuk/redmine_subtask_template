@@ -11,12 +11,13 @@ class SubtaskTemplatesController < ApplicationController
 
   def new
     @template = SubtaskTemplate.new
+    @template.subtask_template_items.build
   end
 
   def create
     @template = SubtaskTemplate.new(template_params)
     if @template.save
-      flash[:notice] = 'テンプレートが作成されました。'
+      flash[:notice] = 'Template was successfully created.'
       redirect_to subtask_templates_path
     else
       render :new
@@ -28,7 +29,7 @@ class SubtaskTemplatesController < ApplicationController
 
   def update
     if @template.update(template_params)
-      flash[:notice] = 'テンプレートが更新されました。'
+      flash[:notice] = 'Template was successfully updated.'
       redirect_to subtask_templates_path
     else
       render :edit
@@ -37,7 +38,7 @@ class SubtaskTemplatesController < ApplicationController
 
   def destroy
     @template.destroy
-    flash[:notice] = 'テンプレートが削除されました。'
+    flash[:notice] = 'Template was successfully deleted.'
     redirect_to subtask_templates_path
   end
 

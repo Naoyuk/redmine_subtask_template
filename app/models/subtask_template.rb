@@ -11,7 +11,7 @@ class SubtaskTemplate < ActiveRecord::Base
   scope :for_project, ->(project) { where(project_id: project.id) }
 
   def display_name
-    project_id ? "#{name} (#{project.name})" : "#{name} (グローバル)"
+    project_id ? "#{name} (#{project.name})" : "#{name} (Global)"
   end
 
   def create_subtasks_for_issue(parent_issue)
