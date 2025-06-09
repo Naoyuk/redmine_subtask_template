@@ -39,10 +39,11 @@ rescue => e
 end
 
 # テストファイルを個別に実行
-test_files = [
-  'unit/subtask_template_test.rb',
-  'unit/subtask_template_item_test.rb'
-]
+unit_test_files = Dir.glob('unit/**/*_test.rb')
+functional_test_files = Dir.glob('functional/**/*_test.rb')
+integration_test_files = Dir.glob('integration/**/*_test.rb')
+
+test_files = unit_test_files + functional_test_files + integration_test_files
 
 test_files.each do |file|
   test_path = File.join('test', file)
