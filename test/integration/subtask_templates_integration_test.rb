@@ -377,7 +377,7 @@ class SubtaskTemplatesIntegrationTest < ActionDispatch::IntegrationTest
   def create_admin_user
     begin
       # FactoryBotのsequence機能を活用
-      FactoryBot.create(:user, admin: true)
+      create(:user, admin: true)
     rescue NameError, LoadError, NoMethodError
       # FactoryBot利用できない場合のフォールバック
       User.create!(
@@ -396,7 +396,7 @@ class SubtaskTemplatesIntegrationTest < ActionDispatch::IntegrationTest
   def create_regular_user
     begin
       # FactoryBotのsequence機能を活用
-      FactoryBot.create(:user, admin: false)
+      create(:user, admin: false)
     rescue NameError, LoadError, NoMethodError
       # FactoryBot利用できない場合のフォールバック
       User.create!(
@@ -415,7 +415,7 @@ class SubtaskTemplatesIntegrationTest < ActionDispatch::IntegrationTest
   def create_test_project
     begin
       # FactoryBotのsequence機能を活用
-      FactoryBot.create(:project)
+      create(:project)
     rescue NameError, LoadError, NoMethodError
       # FactoryBot利用できない場合のフォールバック
       Project.create!(
@@ -429,7 +429,7 @@ class SubtaskTemplatesIntegrationTest < ActionDispatch::IntegrationTest
   def create_issue_priority
     begin
       # FactoryBotのsequence機能を活用
-      FactoryBot.create(:issue_priority)
+      create(:issue_priority)
     rescue NameError, LoadError, NoMethodError
       # FactoryBot利用できない場合のフォールバック
       IssuePriority.create!(
@@ -442,7 +442,7 @@ class SubtaskTemplatesIntegrationTest < ActionDispatch::IntegrationTest
   def create_issue_status
     begin
       # FactoryBotのsequence機能を活用  
-      FactoryBot.create(:issue_status)
+      create(:issue_status)
     rescue NameError, LoadError, NoMethodError
       # FactoryBot利用できない場合のフォールバック
       IssueStatus.create!(
@@ -455,7 +455,7 @@ class SubtaskTemplatesIntegrationTest < ActionDispatch::IntegrationTest
   def create_tracker
     begin
       # FactoryBotのsequence機能を活用
-      FactoryBot.create(:tracker)
+      create(:tracker)
     rescue NameError, LoadError, NoMethodError
       # FactoryBot利用できない場合のフォールバック
       status = create_issue_status
@@ -470,7 +470,7 @@ class SubtaskTemplatesIntegrationTest < ActionDispatch::IntegrationTest
   def create_template_with_items
     begin
       # FactoryBotのsequence機能とtraitを活用
-      FactoryBot.create(:subtask_template, :with_subtask_items, project: @project)
+      create(:subtask_template, :with_subtask_items, project: @project)
     rescue NameError, LoadError, NoMethodError
       # FactoryBot利用できない場合のフォールバック
       template = SubtaskTemplate.create!(
