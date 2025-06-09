@@ -41,32 +41,24 @@ chmod +x test_runner.sh
 ### 2. 手動実行
 ```bash
 # Docker環境でRedmineコンテナにアクセス
-docker-compose exec redmine bash
+docker compose exec redmine bash
 
 # テスト環境準備
 cd /usr/src/redmine
 RAILS_ENV=test bundle exec rake db:create
-RAILS_ENV=test bundle exec rake db:migrate  
+RAILS_ENV=test bundle exec rake db:migrate
 RAILS_ENV=test bundle exec rake redmine:plugins:migrate
 
-# 全テスト実行
+# テスト実行
 RAILS_ENV=test bundle exec rake test TEST=plugins/subtask_template/test/**/*_test.rb
 
-# 個別テスト実行
-RAILS_ENV=test bundle exec ruby plugins/subtask_template/test/unit/subtask_template_test.rb
-RAILS_ENV=test bundle exec ruby plugins/subtask_template/test/functional/subtask_templates_controller_test.rb
-RAILS_ENV=test bundle exec ruby plugins/subtask_template/test/integration/subtask_templates_integration_test.rb
-```
-
-### 3. カテゴリ別実行
-```bash
-# ユニットテストのみ
+# ユニットテストのみ実行
 RAILS_ENV=test bundle exec rake test:units TEST=plugins/subtask_template/test/unit/**/*_test.rb
 
-# 機能テストのみ  
+# 機能テストのみ実行
 RAILS_ENV=test bundle exec rake test:functionals TEST=plugins/subtask_template/test/functional/**/*_test.rb
 
-# 統合テストのみ
+# 統合テストのみ実行
 RAILS_ENV=test bundle exec rake test:integration TEST=plugins/subtask_template/test/integration/**/*_test.rb
 ```
 
@@ -79,34 +71,10 @@ RAILS_ENV=test bundle exec rake test:integration TEST=plugins/subtask_template/t
 ### Test Helper (`test/test_helper.rb`)
 テスト用の共通ヘルパーメソッド:
 - `create_test_project`: テスト用プロジェクト作成
-- `create_test_user`: テスト用ユーザー作成  
+- `create_test_user`: テスト用ユーザー作成
 - `create_test_template`: テスト用テンプレート作成
 - `create_test_template_item`: テスト用サブタスクアイテム作成
 - `ensure_default_data`: Redmineデフォルトデータの確保
-
-## テストカバレッジ
-
-### モデルテスト
-- ✅ バリデーション（必須項目、長さ制限、一意性）
-- ✅ 関連モデル（belongs_to、has_many）
-- ✅ スコープ（global、for_project、ordered）
-- ✅ ビジネスロジック（サブタスク作成、表示名生成）
-- ✅ ネストした属性（accepts_nested_attributes_for）
-
-### コントローラーテスト  
-- ✅ 全CRUD操作（index、show、new、create、edit、update、destroy）
-- ✅ 認証・認可（require_admin、ログイン必須）
-- ✅ パラメータ処理（strong parameters）
-- ✅ エラーハンドリング（バリデーション失敗）
-- ✅ フラッシュメッセージ
-- ✅ リダイレクト
-
-### 統合テスト
-- ✅ 完全なワークフロー（作成→表示→編集→削除）
-- ✅ サブタスク自動作成機能
-- ✅ アクセス制御（管理者以外のアクセス拒否）
-- ✅ フォーム操作（動的フィールド追加・削除）
-- ✅ エラー処理（無効データ送信）
 
 ## 継続的インテグレーション
 
@@ -137,7 +105,7 @@ jobs:
    ```
 
 2. **Redmineが起動しない**
-   ```bash  
+   ```bash
    # ログを確認
    docker-compose logs redmine
    ```
