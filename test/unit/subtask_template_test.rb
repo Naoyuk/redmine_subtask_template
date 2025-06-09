@@ -124,4 +124,21 @@ class SubtaskTemplateTest < ActiveSupport::TestCase
 
     assert_nil SubtaskTemplateItem.find_by(id: item_id)
   end
+  
+  def test_accepts_nested_attributes_for_items
+    # ネストした属性での作成テスト
+    template_params = {
+      name: "Template with Nested Items",
+      subtask_template_items_attributes: [
+        { title: "Nested Subtask 1", description: "Description 1" },
+        { title: "Nested Subtask 2", description: "Description 2" }
+      ]
+    }
+
+    template = SubtaskTemplate.create!(template_params)
+
+    assert_equal 2, template.subtask_template_items.count
+    assert_equal "Nested Subtask 1", template.subtask_template_items.first.title
+    assert_equal "Nested Subtask 2", template.subtask_template_items.last.title
+  end
 end
